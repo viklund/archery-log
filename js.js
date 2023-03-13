@@ -21,6 +21,11 @@ class Hit {
     }
 
     delete() {
+        console.log("Delete");
+        for (let s of this.svgs) {
+            var p = s.node.parentNode;
+            p.removeChild(s.node);
+        }
     }
 }
 
@@ -181,24 +186,45 @@ class Target {
     }
 }
 
+var hits = [];
+
+function deleteHit(n) {
+    hits[n].delete();
+}
+
 var t = new Target();
 t.paintTargets();
 t.on('hit', (h) => {
     console.log(h);
 
+    hits.push(h);
+
+    var arrow = hits.length;
+
     var tbl = document.getElementById('table');
     var row = document.createElement('tr');
     var c1  = document.createElement('td');
-    c1.innerText = h.arrow;
+    c1.innerText = arrow;
     row.appendChild(c1);
+
     c1 = document.createElement('td');
     c1.innerText = h.score;
     row.appendChild(c1);
+
     var c2 = document.createElement('td');
     c2.innerText = Math.floor( h.x );
     row.appendChild(c2);
+
     var c3 = document.createElement('td');
     c3.innerText = Math.floor( h.y );
     row.appendChild(c3);
+
+    var c4 = document.createElement('td');
+    var a = document.createElement('a');
+    a.setAttribute('onclick', 'deleteHit(' + (arrow-1) + ')');
+    a.innerText = "Delete";
+    c4.appendChild(a);
+    row.appendChild(c4);
+
     tbl.appendChild(row);
 });
