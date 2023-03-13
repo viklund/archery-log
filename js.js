@@ -1,3 +1,30 @@
+class Hit {
+    constructor(x, y, svgs) {
+        this.svgs = svgs;
+        this.x = x;
+        this.y = y;
+
+        let angle = Math.atan(y/x)*180/Math.PI;
+        if ( x < 0 ) {
+            angle += 180;
+        }
+        else if ( y < 0 ) {
+            angle += 360;
+        }
+        this.angle = angle;
+
+        this.dist = Math.sqrt(x**2 + y**2);
+        this.score = Math.floor(11 - this.dist);
+        if (this.score < 0) {
+            this.score = 0;
+        }
+    }
+
+    delete() {
+    }
+}
+
+
 class Target {
     constructor(size=350, zoom=6, canvas='div#canvas') {
         this.SIZE      = size;
@@ -80,6 +107,7 @@ class Target {
         var [x,y] = this.eventCoordinate(e);
 
         this['_crosshair'].transform({translateX: x, translateY: y});
+
         var dist = Math.sqrt( (this.CENTER - x)**2 + (this.CENTER - y)**2);
         var size_of_one_segment = this.SIZE/20;
         var score = 10 - Math.floor(dist/size_of_one_segment);
@@ -120,36 +148,13 @@ class Target {
         var bx = (x-this.CENTER)*this.ZOOM + this.CENTER;
         var by = (y-this.CENTER)*this.ZOOM + this.CENTER;
 
-        var hit = {};
+        var svg_target = this.target.group.circle(10).fill('white').stroke({color:'black',width:2}).attr({cx:x,cy:y});
+        var svg_zoomed = this.zoomed.group.circle(10*this.ZOOM/2).fill('white').stroke({color:'black',width:2}).attr({cx:bx,cy:by});
 
-        hit.arrow = this.ARROW++;
-
-        hit['svg_target'] = this.target.group.circle(10).fill('white').stroke({color:'black',width:2}).attr({cx:x,cy:y});
-        hit['svg_zoomed'] = this.zoomed.group.circle(10*this.ZOOM/2).fill('white').stroke({color:'black',width:2}).attr({cx:bx,cy:by});
-
-        hit.x = 10*(x-this.CENTER)/this.RADIUS;
-        hit.y = 10*(this.CENTER-y)/this.RADIUS;
-
-        var angle = Math.atan(hit.y/hit.x)*180/Math.PI;
-        if ( hit.x < 0 ) {
-            angle += 180;
-        }
-        else if (hit.y < 0 ) {
-            angle += 360;
-        }
-        hit.angle = angle;
-
-        var dist = Math.sqrt( (this.CENTER - x)**2 + (this.CENTER - y)**2);
-        var size_of_one_segment = this.RADIUS/10;
-        hit.dist = dist/size_of_one_segment;
-
-        var score = 11 - dist/size_of_one_segment;
-        if (score <= 0) {
-            score = 0;
-        }
-        score = Math.floor(score);
-
-        hit.score = score;
+        var hit = new Hit(
+            10*(x - this.CENTER)/this.RADIUS,
+            10*(this.CENTER - y)/this.RADIUS,
+            [svg_target, svg_zoomed])
 
         this.run_callback('hit', hit);
     }
