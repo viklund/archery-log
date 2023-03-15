@@ -18,6 +18,19 @@ class Hit {
         if (this.score < 0) {
             this.score = 0;
         }
+
+        this.time = Date.now();
+    }
+
+    jsonS() {
+        return {
+            x:     this.x,
+            y:     this.y,
+            dist:  this.dist,
+            angle: this.angle,
+            score: this.score,
+            time:  this.score
+        };
     }
 
     delete() {
