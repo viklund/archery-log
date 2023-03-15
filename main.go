@@ -36,8 +36,8 @@ func addHit(c *gin.Context) {
 
 func main() {
     router := gin.Default()
-    router.GET("/api/getHits", getHits)
-    router.POST("/api/addHit", addHit)
+    router.GET("/getHits", getHits)
+    router.POST("/addHit", addHit)
 
-    router.Run("localhost:8081")
+    router.Run("0.0.0.0:8081")
 }

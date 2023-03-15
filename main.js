@@ -42,7 +42,6 @@ class Hit {
     }
 }
 
-
 class Target {
     constructor(size=350, zoom=6, canvas='div#canvas') {
         this.SIZE      = size;
@@ -240,4 +239,20 @@ t.on('hit', (h) => {
     row.appendChild(c4);
 
     tbl.appendChild(row);
+
+    fetch('http://localhost:8080/api/addHit',
+        {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(h.jsonS())
+        }
+    ).then( (r) => {
+        if (!r.ok) {
+            console.log("Post Error: " + r.status + " " + r.statusText);
+        }
+        console.log("Success!");
+    });
 });
