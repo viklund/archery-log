@@ -1,0 +1,14 @@
+
+services:
+  frontend:
+    image: nginx
+    ports:
+      - "8080:80"
+    volumes:
+      - ./:/usr/share/nginx/html
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8081:8081"
