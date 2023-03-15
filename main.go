@@ -8,11 +8,11 @@ import (
 )
 
 type hit struct {
-    X     float64 `json:"X"`
-    Y     float64 `json:"Y"`
-    Angle float64 `json:"Angle"`
-    Dist  float64 `json:"Dist"`
-    Score int32   `json:"Score"`
+    X     float64 `json:"X,omitempty"`
+    Y     float64 `json:"Y,omitempty"`
+    Angle float64 `json:"Angle,omitempty"`
+    Dist  float64 `json:"Dist,omitempty"`
+    Score int32   `json:"Score,omitempty"`
 }
 
 var hits = []hit{}
