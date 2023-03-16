@@ -18,11 +18,23 @@ type hit struct {
     Score int32   `json:"Score,omitempty"`
 }
 
-var hits = []hit{}
 var db *sql.DB
 
 func getHits(c *gin.Context) {
     fmt.Printf("%v\n", db)
+    rows, err := db.Query("SELECT * from hit");
+    checkErr(err)
+
+    var hits = []hit{}
+
+    for rows.Next() {
+        var h hit
+        err = rows.Scan(&h.Id, &h.X, &h.Y, &h.Angle, &h.Dist, &h.Score)
+        checkErr(err)
+
+        hits = append(hits, h)
+    }
+
     c.IndentedJSON(http.StatusOK, hits);
 }
 
