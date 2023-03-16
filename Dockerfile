@@ -1,14 +1,4 @@
-FROM golang:alpine as builder
-
-ENV GOPATH=$PWD
-ENV CGO_ENABLED=0
-
-COPY go.mod go.sum main.go ./
-
-RUN go build .
-RUN echo "nobody:x:65534:65534:nobody:/:/sbin/nologin" > passwd
-
-FROM scratch
+FROM golang:alpine
 
 ARG BUILD_DATE
 ARG SOURCE_COMMIT
@@ -19,10 +9,13 @@ LABEL org.label-schema.build-date=$BUILD_DATE
 LABEL org.label-schema.vcs-url="https://github.com/viklund/archery-log"
 LABEL org.label-schema.vcs-ref=$SOURCE_COMMIT
 
-COPY --from=builder /go/passwd /etc/passwd
-COPY --from=builder /go/backend /usr/bin/
-COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
+ENV GOPATH=$PWD
+ENV CGO_ENABLED=1
 
-USER 65534
+COPY go.mod go.sum main.go /go/src/
+
+RUN apk add --no-cache --virtual .build-deps gcc musl-dev libc-dev && \
+    cd /go/src && go build . && mv backend /usr/bin/backend && \
+    apk del .build-deps && rm -rf /root/go && rm -rf /root/.cache
 
 CMD ["/usr/bin/backend"]

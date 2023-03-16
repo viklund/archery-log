@@ -1,3 +1,7 @@
 #!/usr/bin/env bash
 
-docker run --name nginx-archery --rm -d -p 8080:80 -v $PWD:/usr/share/nginx/html:ro nginx
+if [ ! -f database.db ]; then
+    sqlite3 database.db < schema.sql
+fi
+
+docker-compose up --build
