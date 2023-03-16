@@ -1,13 +1,16 @@
 package main
 
 import (
+    "database/sql"
     "net/http"
     "fmt"
 
     "github.com/gin-gonic/gin"
+    _ "github.com/mattn/go-sqlite3"
 )
 
 type hit struct {
+    Id    int64   `json:"id,omitempty"`
     X     float64 `json:"X,omitempty"`
     Y     float64 `json:"Y,omitempty"`
     Angle float64 `json:"Angle,omitempty"`
@@ -16,28 +19,52 @@ type hit struct {
 }
 
 var hits = []hit{}
+var db *sql.DB
 
 func getHits(c *gin.Context) {
+    fmt.Printf("%v\n", db)
     c.IndentedJSON(http.StatusOK, hits);
 }
 
 func addHit(c *gin.Context) {
     var newHit hit
 
-    fmt.Println("Hej")
-
     if err := c.BindJSON(&newHit); err != nil {
         return
     }
 
-    hits = append(hits, newHit)
+    stmt, err := db.Prepare("INSERT INTO hit(x,y,angle,dist,score) VALUES (?,?,?,?,?)")
+    checkErr(err)
+
+    res, err := stmt.Exec(newHit.X, newHit.Y, newHit.Angle, newHit.Dist, newHit.Score)
+    checkErr(err)
+
+    id, err := res.LastInsertId()
+    checkErr(err)
+
+    fmt.Println(id)
+    newHit.Id = id
+
     c.IndentedJSON(http.StatusCreated, newHit)
 }
 
 func main() {
+    var err error
+    db, err = sql.Open("sqlite3", "./database.db")
+    if err != nil {
+        fmt.Println("Error with database: ", err)
+    }
+    fmt.Printf("%v\n", db)
+
     router := gin.Default()
-    router.GET("/getHits", getHits)
-    router.POST("/addHit", addHit)
+    router.GET("/api/getHits", getHits)
+    router.POST("/api/addHit", addHit)
 
     router.Run("0.0.0.0:8081")
+}
+
+func checkErr(err error) {
+    if err != nil {
+        panic(err)
+    }
 }
