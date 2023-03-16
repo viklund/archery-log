@@ -1,4 +1,4 @@
-CREATE TABLE hit (
+CREATE TABLE hits (
     id integer primary key autoincrement not null,
     x real,
     y real,

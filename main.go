@@ -22,7 +22,7 @@ var db *sql.DB
 
 func getHits(c *gin.Context) {
     fmt.Printf("%v\n", db)
-    rows, err := db.Query("SELECT * from hit");
+    rows, err := db.Query("SELECT * from hits");
     checkErr(err)
 
     var hits = []hit{}
@@ -45,7 +45,7 @@ func addHit(c *gin.Context) {
         return
     }
 
-    stmt, err := db.Prepare("INSERT INTO hit(x,y,angle,dist,score) VALUES (?,?,?,?,?)")
+    stmt, err := db.Prepare("INSERT INTO hits(x,y,angle,dist,score) VALUES (?,?,?,?,?)")
     checkErr(err)
 
     res, err := stmt.Exec(newHit.X, newHit.Y, newHit.Angle, newHit.Dist, newHit.Score)
