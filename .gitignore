@@ -1,0 +1,5 @@
+backend
+database.db
+node_modules/
+package*.json
+.eslintrc.json
