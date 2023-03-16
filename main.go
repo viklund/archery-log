@@ -69,8 +69,18 @@ func main() {
     fmt.Printf("%v\n", db)
 
     router := gin.Default()
-    router.GET("/api/getHits", getHits)
-    router.POST("/api/addHit", addHit)
+    router.GET("/api/hits", getHits)
+    router.POST("/api/hits", addHit)
+    // https://gin-gonic.com/docs/examples/bind-uri/
+    // router.GET"("/api/hits/:hit", getHit)
+
+    // I guess the URI structure should be /api/sessions/:session/hits/:hit
+    // POST /api/sessions   - create session
+    // GET  /api/sessions   - get all sessions
+    // GET  /api/essions/1  - get first session
+    // POST /api/sessions/1/hits   - create hit
+    // GET  /api/sessions/1/hits   - get all hits for session
+    // GET  /api/sessions/1/hits/1 - get first hit for session
 
     router.Run("0.0.0.0:8081")
 }

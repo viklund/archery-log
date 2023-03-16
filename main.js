@@ -240,7 +240,7 @@ t.on('hit', (h) => {
 
     tbl.appendChild(row);
 
-    fetch('http://localhost:8080/api/addHit',
+    fetch('http://localhost:8080/api/hits',
         {
             method: 'POST',
             headers: {
