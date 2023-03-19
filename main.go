@@ -91,7 +91,7 @@ func (s *Store) CreateSession() (*session, bool) {
 
 
 func (s *Store) GetHit(id int64) (*hit, bool) {
-    rows, err := s.db.Query("SELECT id, x, y, angle, dist, score FROM hit WHERE id=?", id)
+    rows, err := s.db.Query("SELECT id, x, y, angle, dist, score FROM hits WHERE id=?", id)
     checkErr(err)
 
     var hits = []hit{}
