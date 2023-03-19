@@ -130,6 +130,26 @@ func (s *Store) GetSessionHits(session_id int64) ([]hit, bool) {
     return nil, false
 }
 
+func (s *Store) GetSessionHit(session_id int64, hit_id int64) ([]hit, bool) {
+    rows, err := s.db.Query("SELECT id, x, y, angle, dist, score FROM hits WHERE session=? AND id=?", session_id, hit_id)
+    checkErr(err)
+
+    var hits = []hit{}
+
+    for rows.Next() {
+        var h hit
+        err = rows.Scan(&h.Id, &h.X, &h.Y, &h.Angle, &h.Dist, &h.Score)
+        checkErr(err)
+
+        hits = append(hits, h)
+    }
+
+    if (len(hits) == 1) {
+        return hits, true
+    }
+    return nil, false
+}
+
 func (s *Store) CreateHit(h hit, session_id int64) (*hit, bool) {
     res, err := s.db.Exec("INSERT INTO hits(session, x,y,angle,dist,score) VALUES (?,?,?,?,?)",
         session_id, h.X, h.Y, h.Angle, h.Dist, h.Score)
@@ -160,6 +180,11 @@ func (s *Store) UpdateHit(h hit) (*hit, bool) {
 
 type SessionBinding struct {
     Session *int64 `uri:"session" binding:"required"`
+}
+
+type SessionHitBinding struct {
+    Session *int64 `uri:"session" binding:"required"`
+    Hit     *int64 `uri:"hit"     binding:"required"`
 }
 
 func getSession(c *gin.Context) {
@@ -204,6 +229,20 @@ func getSessionHits(c *gin.Context) {
     }
 }
 
+func getSessionHit(c *gin.Context) {
+    var binding SessionHitBinding
+    if err := c.ShouldBindUri(&binding); err != nil {
+        c.IndentedJSON(400, gin.H{"msg": err})
+        return
+    }
+    if hs, ok := store.GetSessionHit(*binding.Session, *binding.Hit); ok {
+        c.IndentedJSON(http.StatusOK, hs)
+    } else {
+        c.IndentedJSON(http.StatusNotFound, nil)
+    }
+}
+
+
 func main() {
     store = NewStore()
 
@@ -214,6 +253,7 @@ func main() {
     router.POST("/api/sessions", createSession)
 
     router.GET("/api/sessions/:session/hits", getSessionHits)
+    router.GET("/api/sessions/:session/hits/:hit", getSessionHit)
 
     // https://gin-gonic.com/docs/examples/bind-uri/
 
