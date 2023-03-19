@@ -151,7 +151,7 @@ func (s *Store) GetSessionHit(session_id int64, hit_id int64) ([]hit, bool) {
 }
 
 func (s *Store) CreateHit(h hit, session_id int64) (*hit, bool) {
-    res, err := s.db.Exec("INSERT INTO hits(session, x,y,angle,dist,score) VALUES (?,?,?,?,?)",
+    res, err := s.db.Exec("INSERT INTO hits(session, x,y,angle,dist,score) VALUES (?,?,?,?,?,?)",
         session_id, h.X, h.Y, h.Angle, h.Dist, h.Score)
     checkErr(err)
 
@@ -242,6 +242,36 @@ func getSessionHit(c *gin.Context) {
     }
 }
 
+type hitJSONBinding struct {
+    X     float64 `json:"X"`
+    Y     float64 `json:"Y"`
+    Angle float64 `json:"Angle"`
+    Dist  float64 `json:"Dist"`
+    Score int32   `json:"Score"`
+}
+
+func createSessionHit(c *gin.Context) {
+    var binding SessionBinding
+    if err := c.ShouldBindUri(&binding); err != nil {
+        c.IndentedJSON(400, gin.H{"msg": err})
+        return
+    }
+    var hitBinding hitJSONBinding
+    c.Bind(&hitBinding)
+    h := hit{
+        X:     hitBinding.X,
+        Y:     hitBinding.Y,
+        Angle: hitBinding.Angle,
+        Dist:  hitBinding.Dist,
+        Score: hitBinding.Score,
+    }
+    if hs, ok := store.CreateHit(h, *binding.Session); ok {
+        c.IndentedJSON(http.StatusOK, hs)
+    } else {
+        c.IndentedJSON(http.StatusNotFound, nil)
+    }
+}
+
 
 func main() {
     store = NewStore()
@@ -254,6 +284,7 @@ func main() {
 
     router.GET("/api/sessions/:session/hits", getSessionHits)
     router.GET("/api/sessions/:session/hits/:hit", getSessionHit)
+    router.POST("/api/sessions/:session/hits", createSessionHit)
 
     // https://gin-gonic.com/docs/examples/bind-uri/
 
