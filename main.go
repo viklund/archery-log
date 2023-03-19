@@ -182,6 +182,14 @@ func getAllSessions(c *gin.Context) {
     }
 }
 
+func createSession(c *gin.Context) {
+    if session, ok := store.CreateSession(); ok {
+        c.IndentedJSON(http.StatusCreated, session)
+    } else {
+        c.IndentedJSON(http.StatusInternalServerError, nil)
+    }
+}
+
 func main() {
     store = NewStore()
 
@@ -189,7 +197,7 @@ func main() {
 
     router.GET("/api/sessions", getAllSessions)
     router.GET("/api/sessions/:session", getSession)
-    //router.POST("/api/sessions", createSession)
+    router.POST("/api/sessions", createSession)
 
     //router.GET("/api/hits", getHits)
     //router.POST("/api/hits", addHit)
