@@ -41,10 +41,7 @@ func NewStore() *Store {
 }
 
 func (s *Store) GetSession(id int64) (*session, bool) {
-    stmt, err := s.db.Prepare("SELECT * FROM sessions WHERE id=?");
-    checkErr(err)
-
-    rows, err := stmt.Query(id)
+    rows, err := s.db.Query("SELECT * FROM sessions WHERE id=?", id);
     checkErr(err)
 
     var sessions = []session{}
@@ -64,10 +61,7 @@ func (s *Store) GetSession(id int64) (*session, bool) {
 }
 
 func (s *Store) GetAllSessions() ([]session, bool) {
-    stmt, err := s.db.Prepare("SELECT * FROM sessions");
-    checkErr(err)
-
-    rows, err := stmt.Query()
+    rows, err := s.db.Query("SELECT * FROM sessions");
     checkErr(err)
 
     var sessions = []session{}
@@ -87,10 +81,7 @@ func (s *Store) GetAllSessions() ([]session, bool) {
 }
 
 func (s *Store) CreateSession() (*session, bool) {
-    stmt, err := s.db.Prepare("INSERT INTO sessions DEFAULT VALUES")
-    checkErr(err)
-
-    res, err := stmt.Exec()
+    res, err := s.db.Exec("INSERT INTO sessions DEFAULT VALUES")
     checkErr(err)
 
     id, err := res.LastInsertId()
@@ -99,10 +90,9 @@ func (s *Store) CreateSession() (*session, bool) {
     return s.GetSession(id)
 }
 
-func (s *Store) GetHit(id int64) (*hit, bool) {
-    stmt, err := s.db.Prepare("SELECT id, x, y, angle, dist, score FROM hit WHERE id=?")
 
-    rows, err := stmt.Query(id)
+func (s *Store) GetHit(id int64) (*hit, bool) {
+    rows, err := s.db.Query("SELECT id, x, y, angle, dist, score FROM hit WHERE id=?", id)
     checkErr(err)
 
     var hits = []hit{}
@@ -122,10 +112,8 @@ func (s *Store) GetHit(id int64) (*hit, bool) {
 }
 
 func (s *Store) CreateHit(h hit, session_id int64) (*hit, bool) {
-    stmt, err := s.db.Prepare("INSERT INTO hits(session, x,y,angle,dist,score) VALUES (?,?,?,?,?)")
-    checkErr(err)
-
-    res, err := stmt.Exec(session_id, h.X, h.Y, h.Angle, h.Dist, h.Score)
+    res, err := s.db.Exec("INSERT INTO hits(session, x,y,angle,dist,score) VALUES (?,?,?,?,?)",
+        session_id, h.X, h.Y, h.Angle, h.Dist, h.Score)
     checkErr(err)
 
     id, err := res.LastInsertId()
@@ -135,20 +123,15 @@ func (s *Store) CreateHit(h hit, session_id int64) (*hit, bool) {
 }
 
 func (s *Store) DeleteHit(h hit) (bool) {
-    stmt, err := s.db.Prepare("DELETE FROM hits WHERE id=?")
-    checkErr(err)
-
-    _, err = stmt.Exec(h.Id) // TODO Handle res?
+    _, err := s.db.Exec("DELETE FROM hits WHERE id=?", h.Id) // TODO Handle res?
     checkErr(err)
 
     return true
 }
 
 func (s *Store) UpdateHit(h hit) (*hit, bool) {
-    stmt, err := s.db.Prepare("UPDATE hits SET x=?,y=?,angle=?,dist=?,score=? WHERE id=?")
-    checkErr(err)
-
-    _, err = stmt.Exec(h.X, h.Y, h.Angle, h.Dist, h.Score, h.Id) // TODO Handle res?
+    _, err := s.db.Exec("UPDATE hits SET x=?,y=?,angle=?,dist=?,score=? WHERE id=?",
+        h.X, h.Y, h.Angle, h.Dist, h.Score, h.Id) // TODO Handle res?
     checkErr(err)
 
     return s.GetHit(h.Id)
