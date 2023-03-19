@@ -3,7 +3,6 @@ package main
 import (
     "database/sql"
     "net/http"
-    "fmt"
 
     "github.com/gin-gonic/gin"
     _ "github.com/mattn/go-sqlite3"
@@ -166,7 +165,6 @@ type SessionBinding struct {
 func getSession(c *gin.Context) {
     var binding SessionBinding
     if err := c.ShouldBindUri(&binding); err != nil {
-        fmt.Println("Error we got was: " + err.Error())
         c.IndentedJSON(400, gin.H{"msg": err})
         return
     }
@@ -194,10 +192,8 @@ func createSession(c *gin.Context) {
 }
 
 func getSessionHits(c *gin.Context) {
-    fmt.Println("First step")
     var binding SessionBinding
     if err := c.ShouldBindUri(&binding); err != nil {
-        fmt.Println("Error we got was: " + err.Error())
         c.IndentedJSON(400, gin.H{"msg": err})
         return
     }
