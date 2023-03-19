@@ -111,6 +111,26 @@ func (s *Store) GetHit(id int64) (*hit, bool) {
     return nil, false
 }
 
+func (s *Store) GetSessionHits(session_id int64) ([]hit, bool) {
+    rows, err := s.db.Query("SELECT id, x, y, angle, dist, score FROM hits WHERE session=?", session_id)
+    checkErr(err)
+
+    var hits = []hit{}
+
+    for rows.Next() {
+        var h hit
+        err = rows.Scan(&h.Id, &h.X, &h.Y, &h.Angle, &h.Dist, &h.Score)
+        checkErr(err)
+
+        hits = append(hits, h)
+    }
+
+    if (len(hits) > 1) {
+        return hits, true
+    }
+    return nil, false
+}
+
 func (s *Store) CreateHit(h hit, session_id int64) (*hit, bool) {
     res, err := s.db.Exec("INSERT INTO hits(session, x,y,angle,dist,score) VALUES (?,?,?,?,?)",
         session_id, h.X, h.Y, h.Angle, h.Dist, h.Score)
@@ -173,6 +193,21 @@ func createSession(c *gin.Context) {
     }
 }
 
+func getSessionHits(c *gin.Context) {
+    fmt.Println("First step")
+    var binding SessionBinding
+    if err := c.ShouldBindUri(&binding); err != nil {
+        fmt.Println("Error we got was: " + err.Error())
+        c.IndentedJSON(400, gin.H{"msg": err})
+        return
+    }
+    if hs, ok := store.GetSessionHits(*binding.Session); ok {
+        c.IndentedJSON(http.StatusOK, hs)
+    } else {
+        c.IndentedJSON(http.StatusNotFound, nil)
+    }
+}
+
 func main() {
     store = NewStore()
 
@@ -182,19 +217,11 @@ func main() {
     router.GET("/api/sessions/:session", getSession)
     router.POST("/api/sessions", createSession)
 
-    //router.GET("/api/hits", getHits)
-    //router.POST("/api/hits", addHit)
+    router.GET("/api/sessions/:session/hits", getSessionHits)
 
-    //router.GET("/api/sessions", getSessions)
-    //router.GET("/api/sessions/:session", getSession)
-    //router.POST("/api/sessions", createSession)
     // https://gin-gonic.com/docs/examples/bind-uri/
-    // router.GET"("/api/hits/:hit", getHit)
 
     // I guess the URI structure should be /api/sessions/:session/hits/:hit
-    // POST /api/sessions   - create session
-    // GET  /api/sessions   - get all sessions
-    // GET  /api/essions/1  - get first session
     // POST /api/sessions/1/hits   - create hit
     // GET  /api/sessions/1/hits   - get all hits for session
     // GET  /api/sessions/1/hits/1 - get first hit for session
