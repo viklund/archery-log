@@ -15,7 +15,11 @@ ENV CGO_ENABLED=1
 COPY go.mod go.sum main.go /go/src/
 
 RUN apk add --no-cache --virtual .build-deps gcc musl-dev libc-dev && \
-    cd /go/src && go build . && mv backend /usr/bin/backend && \
-    apk del .build-deps && rm -rf /root/go && rm -rf /root/.cache
+    cd /go/src && \
+    go build . && \
+    mv backend /usr/bin/backend && \
+    apk del .build-deps && \
+    rm -rf /root/go && \
+    rm -rf /root/.cache
 
 CMD ["/usr/bin/backend"]
