@@ -1,3 +1,19 @@
+function createElement(elem, text="", options={}) {
+    var e = document.createElement(elem);
+    for (var key in options) {
+        e.setAttribute(key, options[key]);
+    }
+
+    if (typeof(text) == "object") {
+        e.appendChild(text);
+    }
+    else if ( text != "" ) {
+        e.innerText = text;
+    }
+
+    return e;
+}
+
 class Hit {
     constructor(x, y, svgs) {
         this.svgs = svgs;
@@ -34,7 +50,6 @@ class Hit {
     }
 
     delete() {
-        console.log("Delete");
         for (let s of this.svgs) {
             var p = s.node.parentNode;
             p.removeChild(s.node);
@@ -198,47 +213,73 @@ class Target {
     }
 }
 
+class Table {
+    constructor(id) {
+        var container = document.getElementById(id);
+        var tbl = createElement('table');
+        container.appendChild(tbl)
+        self._table = tbl;
+    }
+
+    addHeader(columns) {
+        var row = createElement('tr');
+        for (var c of columns) {
+            var th = createElement('th', c);
+            row.appendChild(th);
+        }
+        self._table.appendChild(row);
+    }
+
+    addRow(columns) {
+        var row = createElement('tr');
+        for (var c of columns) {
+            var td = createElement('td', c);
+            row.appendChild(td);
+        }
+        self._table.appendChild(row);
+        return row;
+    }
+
+    prependRow(columns) {
+        var row = createElement('tr');
+        for (var c of columns) {
+            var td = createElement('td', c);
+            row.appendChild(td);
+        }
+
+        var first_child = self._table.firstChild;
+        var second = first_child.nextSibling;
+        if ( second ) {
+            self._table.insertBefore(row, second);
+        }
+        else {
+            self._table.appendChild(row);
+        }
+
+        return row;
+    }
+}
+
 var hits = [];
+var rows = [];
 
 function deleteHit(n) {
     hits[n].delete();
+    rows[n].parentNode.removeChild(rows[n]);
 }
+
+var tbl = new Table('table');
+tbl.addHeader(['#', 'Score', 'X', 'Y']);
 
 var t = new Target();
 t.paintTargets();
 t.on('hit', (h) => {
-    console.log(h);
-
     hits.push(h);
 
-    var arrow = hits.length;
+    var a = createElement("a", "Delete", {"onclick": 'deleteHit(' + (hits.length-1) + ')'});
 
-    var tbl = document.getElementById('table');
-    var row = document.createElement('tr');
-    var c1  = document.createElement('td');
-    c1.innerText = arrow;
-    row.appendChild(c1);
-
-    c1 = document.createElement('td');
-    c1.innerText = h.score;
-    row.appendChild(c1);
-
-    var c2 = document.createElement('td');
-    c2.innerText = Math.floor( h.x );
-    row.appendChild(c2);
-
-    var c3 = document.createElement('td');
-    c3.innerText = Math.floor( h.y );
-    row.appendChild(c3);
-
-    var c4 = document.createElement('td');
-    var a = document.createElement('a');
-    a.setAttribute('onclick', 'deleteHit(' + (arrow-1) + ')');
-    a.innerText = "Delete";
-    c4.appendChild(a);
-    row.appendChild(c4);
-
-    tbl.appendChild(row);
+    var r = tbl.prependRow([hits.length, h.score, Math.floor(h.x), Math.floor(h.y), a]);
+    rows.push(r);
 
     fetch('http://localhost:8080/api/hits',
         {
