@@ -21,19 +21,50 @@ body {
         <!-- <script src="./main.js"></script> -->
     </body>
     <script>
+        var session_number = document.location.search.split("?")[1];
         var c = document.getElementById('session');
-        c.innerText = document.location.search.split("?")[1];
+        c.innerText = session_number;
 
-var hits = [];
-var rows = [];
+        var tbl = new Table('table');
+        tbl.addHeader(['#', 'Score', 'X', 'Y']);
+
+        var hits = [];
+        var rows = [];
+
+        async function loadSessionHits(n) {
+            var t = await fetch('http://localhost:8080/api/sessions/' + n + '/hits',
+                {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                }
+            );
+            console.log(t);
+            var js = await t.json();
+            //js.sort( (a,b) => { return a.starttime < b.starttime });
+
+            for (var i=0; i<js.length; i++) {
+                console.log(h);
+                var h = js[i];
+                hits.push(h);
+                var a = "DELETE";
+                var r = tbl.prependRow([hits.length, h.Score, Math.floor(10*h.X)/10, Math.floor(10*h.Y)/10, a]);
+                rows.push(r);
+                /*
+                var e = createElement('a', j.starttime, {'href': "/session.html?" + j.id});
+                tbl.addRow([j.id, e, j.open]);
+                */
+            }
+        }
+
+        loadSessionHits(session_number);
 
 function deleteHit(n) {
     hits[n].delete();
     rows[n].parentNode.removeChild(rows[n]);
 }
-
-var tbl = new Table('table');
-tbl.addHeader(['#', 'Score', 'X', 'Y']);
 
 var t = new Target();
 t.paintTargets();
@@ -46,7 +77,7 @@ t.on('hit', (h) => {
     var r = tbl.prependRow([hits.length, h.score, Math.floor(10*h.x)/10, Math.floor(10*h.y)/10, a]);
     rows.push(r);
 
-    fetch('http://localhost:8080/api/hits',
+    fetch('http://localhost:8080/api/sessions/' + session_number + '/hits',
         {
             method: 'POST',
             headers: {
