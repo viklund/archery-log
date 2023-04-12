@@ -7,7 +7,7 @@ function createElement(elem, text="", options={}) {
     if (typeof(text) == "object") {
         e.appendChild(text);
     }
-    else if ( text != "" ) {
+    else {
         e.innerText = text;
     }
 
@@ -260,40 +260,3 @@ class Table {
     }
 }
 
-var hits = [];
-var rows = [];
-
-function deleteHit(n) {
-    hits[n].delete();
-    rows[n].parentNode.removeChild(rows[n]);
-}
-
-var tbl = new Table('table');
-tbl.addHeader(['#', 'Score', 'X', 'Y']);
-
-var t = new Target();
-t.paintTargets();
-t.on('hit', (h) => {
-    hits.push(h);
-
-    var a = createElement("a", "Delete", {"onclick": 'deleteHit(' + (hits.length-1) + ')'});
-
-    var r = tbl.prependRow([hits.length, h.score, Math.floor(h.x), Math.floor(h.y), a]);
-    rows.push(r);
-
-    fetch('http://localhost:8080/api/hits',
-        {
-            method: 'POST',
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(h.jsonS())
-        }
-    ).then( (r) => {
-        if (!r.ok) {
-            console.log("Post Error: " + r.status + " " + r.statusText);
-        }
-        console.log("Success!");
-    });
-});

@@ -12,9 +12,35 @@ body {
 
     <body>
         <div id="canvas"></div>
-        <h1>Score: <span id="score"></span></h1>
+        <h1>Sessions</h1>
         <div id="table"></div>
 
         <script src="./main.js"></script>
+        <script>
+        var tbl = new Table('table');
+        tbl.addHeader(['Number', 'Time', 'Open']);
+
+        async function loadSessions() {
+            var t = await fetch('http://localhost:8080/api/sessions',
+                {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                }
+            );
+            var js = await t.json();
+            js.sort( (a,b) => { return a.starttime < b.starttime });
+
+            for (j of js) {
+                var e = createElement('a', j.starttime, {'href': "/session.html?" + j.id});
+                tbl.addRow([j.id, e, j.open]);
+            }
+        }
+
+        loadSessions();
+
+        </script>
     </body>
 </html>

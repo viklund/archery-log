@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Test archery</title>
+        <script src="https://cdn.jsdelivr.net/npm/@svgdotjs/svg.js@latest/dist/svg.min.js"></script>
+<style>
+body {
+    margin: 0px;
+}
+</style>
+    </head>
+
+    <body>
+        <h1>Session <span id="session"></span></h1>
+        <div id="canvas"></div>
+        <h1>Score: <span id="score"></span></h1>
+        <div id="table"></div>
+
+        <script src="./main.js"></script>
+
+        <!-- <script src="./main.js"></script> -->
+    </body>
+    <script>
+        var c = document.getElementById('session');
+        c.innerText = document.location.search.split("?")[1];
+
+var hits = [];
+var rows = [];
+
+function deleteHit(n) {
+    hits[n].delete();
+    rows[n].parentNode.removeChild(rows[n]);
+}
+
+var tbl = new Table('table');
+tbl.addHeader(['#', 'Score', 'X', 'Y']);
+
+var t = new Target();
+t.paintTargets();
+t.on('hit', (h) => {
+    console.log(h);
+    hits.push(h);
+
+    var a = createElement("a", "Delete", {"onclick": 'deleteHit(' + (hits.length-1) + ')'});
+
+    var r = tbl.prependRow([hits.length, h.score, Math.floor(10*h.x)/10, Math.floor(10*h.y)/10, a]);
+    rows.push(r);
+
+    fetch('http://localhost:8080/api/hits',
+        {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(h.jsonS())
+        }
+    ).then( (r) => {
+        if (!r.ok) {
+            console.log("Post Error: " + r.status + " " + r.statusText);
+        }
+        console.log("Success!");
+        console.log(r);
+    });
+});
+    </script>
+</html>
